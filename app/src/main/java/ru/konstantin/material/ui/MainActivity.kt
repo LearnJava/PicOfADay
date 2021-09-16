@@ -2,6 +2,7 @@ package ru.konstantin.material.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import ru.konstantin.material.R
 import ru.konstantin.material.databinding.MainActivityBinding
 import ru.konstantin.material.ui.picture.PictureOfTheDayFragment
 
