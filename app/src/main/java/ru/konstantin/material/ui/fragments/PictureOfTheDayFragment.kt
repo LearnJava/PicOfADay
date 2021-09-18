@@ -1,4 +1,4 @@
-package ru.konstantin.material.ui.picture
+package ru.konstantin.material.ui.fragments
 
 import android.content.Intent
 import android.net.Uri
@@ -9,17 +9,23 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import coil.api.load
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
-import ru.konstantin.material.ui.MainActivity
-import ru.konstantin.material.ui.chips.ChipsFragment
 import kotlinx.android.synthetic.main.main_fragment.*
 import ru.konstantin.material.R
 import ru.konstantin.material.databinding.MainFragmentBinding
 import ru.konstantin.material.model.ViewState
+import ru.konstantin.material.ui.MainActivity
+import ru.konstantin.material.ui.picture.BottomNavigationDrawerFragment
+import ru.konstantin.material.ui.picture.PODServerResponseData
+import ru.konstantin.material.ui.viewModel.PictureOfTheDayViewModel
+
+var THEME_ID = 0
+var BUTTON_ID = 0
 
 class PictureOfTheDayFragment : Fragment() {
 
@@ -31,23 +37,23 @@ class PictureOfTheDayFragment : Fragment() {
         ViewModelProviders.of(this).get(PictureOfTheDayViewModel::class.java)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel.getData()
-            .observe(viewLifecycleOwner, Observer { renderData(it) })
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        activity?.setTheme(THEME_ID)
+        viewModel.getData()
+            .observe(viewLifecycleOwner, Observer { renderData(it) })
         _binding = MainFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setBottomSheetBehavior(binding.bottomSheetContainer.root, BottomSheetBehavior.STATE_COLLAPSED)
+        setBottomSheetBehavior(
+            binding.bottomSheetContainer.root,
+            BottomSheetBehavior.STATE_COLLAPSED
+        )
         input_layout.setEndIconOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse("https://en.wikipedia.org/wiki/${input_edit_text.text.toString()}")
@@ -67,9 +73,23 @@ class PictureOfTheDayFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+
             R.id.app_bar_fav -> toast("Favourite")
-            R.id.app_bar_settings -> activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.container, ChipsFragment())?.addToBackStack(null)?.commit()
+            R.id.app_bar_settings -> {
+                val bundle = Bundle()
+                bundle.putInt(SettingPropertiesFragment.BUNDLE_THEME_ID, THEME_ID)
+                bundle.putInt(SettingPropertiesFragment.BUNDLE_BUTTON_ID, BUTTON_ID)
+                activity
+                    ?.supportFragmentManager?.beginTransaction()
+                    ?.replace(
+                        R.id.container, SettingPropertiesFragment.newInstance(
+                            Bundle(bundle)
+                        )
+                    )
+                    ?.addToBackStack(null)
+                    ?.commit()
+            }
+
             android.R.id.home -> {
                 activity?.let {
                     BottomNavigationDrawerFragment().show(it.supportFragmentManager, "tag")
@@ -82,15 +102,17 @@ class PictureOfTheDayFragment : Fragment() {
     private fun renderData(data: ViewState) {
         when (data) {
             is ViewState.Success<*> -> {
-                    main.visibility = View.VISIBLE
-                    loadinglayout_in_main.visibility = View.GONE
+                main.visibility = View.VISIBLE
+                loadinglayout_in_main.visibility = View.GONE
                 if ((data.stateData as PODServerResponseData).url.isNullOrEmpty()) {
                     toast("Link is empty")
                 } else {
-                    binding.imageDesc.text = "Photo date: ${(data.stateData).date}"
+                    binding.imageDate.text = "Photo date: ${(data.stateData).date}"
 
-                    binding.bottomSheetContainer.bottomSheetDescriptionHeader.text = (data.stateData).title
-                    binding.bottomSheetContainer.bottomSheetDescription.text = (data.stateData).explanation
+                    binding.bottomSheetContainer.bottomSheetDescriptionHeader.text =
+                        (data.stateData).title
+                    binding.bottomSheetContainer.bottomSheetDescription.text =
+                        (data.stateData).explanation
 //                    setBottomSheetBehavior(binding.bottomSheetContainer.root, BottomSheetBehavior.STATE_HALF_EXPANDED)
 
                     image_view.load((data.stateData).url) {
