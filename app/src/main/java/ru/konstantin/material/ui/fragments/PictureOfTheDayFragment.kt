@@ -1,4 +1,4 @@
-package ru.konstantin.material.ui.picture
+package ru.konstantin.material.ui.fragments
 
 import android.content.Intent
 import android.net.Uri
@@ -15,11 +15,13 @@ import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import ru.konstantin.material.ui.MainActivity
-import ru.konstantin.material.ui.chips.ChipsFragment
 import kotlinx.android.synthetic.main.main_fragment.*
 import ru.konstantin.material.R
 import ru.konstantin.material.databinding.MainFragmentBinding
 import ru.konstantin.material.model.ViewState
+import ru.konstantin.material.ui.picture.BottomNavigationDrawerFragment
+import ru.konstantin.material.ui.picture.PODServerResponseData
+import ru.konstantin.material.ui.viewModel.PictureOfTheDayViewModel
 
 class PictureOfTheDayFragment : Fragment() {
 
@@ -68,8 +70,18 @@ class PictureOfTheDayFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.app_bar_fav -> toast("Favourite")
-            R.id.app_bar_settings -> activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.container, ChipsFragment())?.addToBackStack(null)?.commit()
+            R.id.app_bar_settings -> activity
+//                ?.supportFragmentManager?.beginTransaction()
+//                ?.add(R.id.container, SettingPropertiesFragment())
+//                ?.addToBackStack(null)
+//                ?.commit()
+
+//            activity
+                ?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.container, SettingPropertiesFragment.newInstance())
+                ?.addToBackStack(null)
+                ?.commit()
+
             android.R.id.home -> {
                 activity?.let {
                     BottomNavigationDrawerFragment().show(it.supportFragmentManager, "tag")
@@ -87,7 +99,7 @@ class PictureOfTheDayFragment : Fragment() {
                 if ((data.stateData as PODServerResponseData).url.isNullOrEmpty()) {
                     toast("Link is empty")
                 } else {
-                    binding.imageDesc.text = "Photo date: ${(data.stateData).date}"
+                    binding.imageDate.text = "Photo date: ${(data.stateData).date}"
 
                     binding.bottomSheetContainer.bottomSheetDescriptionHeader.text = (data.stateData).title
                     binding.bottomSheetContainer.bottomSheetDescription.text = (data.stateData).explanation

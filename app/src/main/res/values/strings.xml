@@ -13,4 +13,6 @@
     <string name="reload_text">Reload</string>
     <string name="testing_button">Testing button</string>
     <string name="tap_screen_for_description">Tap screen for description</string>
+    <string name="default_theme">Default theme</string>
+    <string name="new_theme">New theme</string>
 </resources>
