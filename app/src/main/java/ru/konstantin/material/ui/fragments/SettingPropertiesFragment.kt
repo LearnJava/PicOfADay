@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.fragment_loading_layout.view.*
 import ru.konstantin.material.R
 import ru.konstantin.material.databinding.FragmentSettingPropertiesBinding
 
