@@ -28,7 +28,7 @@
         <item name="shapeAppearanceLargeComponent">@style/AppShapeAppearance.Martian</item>
         <item name="shapeAppearanceSmallComponent">@style/AppShapeAppearanceSmallComponents.Martian</item>
         <item name="fabAnimationMode">slide</item>
-        <item name="android:backgroundTint">@color/white_white</item>
+        <item name="android:backgroundTint">@color/blue</item>
     </style>
 
     <style name="AppShapeAppearance" parent="ShapeAppearance.MaterialComponents.MediumComponent">
