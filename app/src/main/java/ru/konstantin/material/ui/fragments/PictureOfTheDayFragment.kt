@@ -1,4 +1,4 @@
-package ru.konstantin.material.ui.picture
+package ru.konstantin.material.ui.fragments
 
 import android.content.Intent
 import android.net.Uri
@@ -14,12 +14,17 @@ import coil.api.load
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
-import ru.konstantin.material.ui.MainActivity
-import ru.konstantin.material.ui.chips.ChipsFragment
 import kotlinx.android.synthetic.main.main_fragment.*
 import ru.konstantin.material.R
 import ru.konstantin.material.databinding.MainFragmentBinding
 import ru.konstantin.material.model.ViewState
+import ru.konstantin.material.ui.MainActivity
+import ru.konstantin.material.ui.picture.BottomNavigationDrawerFragment
+import ru.konstantin.material.ui.picture.PODServerResponseData
+import ru.konstantin.material.ui.viewModel.PictureOfTheDayViewModel
+
+var THEME_ID = 0
+var BUTTON_ID = 0
 
 class PictureOfTheDayFragment : Fragment() {
 
@@ -31,29 +36,33 @@ class PictureOfTheDayFragment : Fragment() {
         ViewModelProviders.of(this).get(PictureOfTheDayViewModel::class.java)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel.getData()
-            .observe(viewLifecycleOwner, Observer { renderData(it) })
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        activity?.setTheme(THEME_ID)
+        viewModel.getData()
+            .observe(viewLifecycleOwner, Observer { renderData(it) })
         _binding = MainFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setBottomSheetBehavior(view.findViewById(R.id.bottom_sheet_container))
+        setBottomSheetBehavior(
+            binding.bottomSheetContainer.root,
+            BottomSheetBehavior.STATE_COLLAPSED
+        )
         input_layout.setEndIconOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse("https://en.wikipedia.org/wiki/${input_edit_text.text.toString()}")
             })
         }
         setBottomAppBar(view)
+
+        binding.imageView.setOnClickListener {
+            hideOrShowBottomSheet()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -63,9 +72,23 @@ class PictureOfTheDayFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+
             R.id.app_bar_fav -> toast("Favourite")
-            R.id.app_bar_settings -> activity?.supportFragmentManager?.beginTransaction()
-                ?.add(R.id.container, ChipsFragment())?.addToBackStack(null)?.commit()
+            R.id.app_bar_settings -> {
+                val bundle = Bundle()
+                bundle.putInt(SettingPropertiesFragment.BUNDLE_THEME_ID, THEME_ID)
+                bundle.putInt(SettingPropertiesFragment.BUNDLE_BUTTON_ID, BUTTON_ID)
+                activity
+                    ?.supportFragmentManager?.beginTransaction()
+                    ?.replace(
+                        R.id.container, SettingPropertiesFragment.newInstance(
+                            Bundle(bundle)
+                        )
+                    )
+                    ?.addToBackStack(null)
+                    ?.commit()
+            }
+
             android.R.id.home -> {
                 activity?.let {
                     BottomNavigationDrawerFragment().show(it.supportFragmentManager, "tag")
@@ -78,15 +101,19 @@ class PictureOfTheDayFragment : Fragment() {
     private fun renderData(data: ViewState) {
         when (data) {
             is ViewState.Success<*> -> {
-//                if (main.visibility != View.VISIBLE) {
-                    main.visibility = View.VISIBLE
-                    loadinglayout_in_main.visibility = View.GONE
-//                }
+                main.visibility = View.VISIBLE
+                loadinglayout_in_main.visibility = View.GONE
                 if ((data.stateData as PODServerResponseData).url.isNullOrEmpty()) {
-                    //showError("Сообщение, что ссылка пустая")
                     toast("Link is empty")
                 } else {
-                    //showSuccess()
+                    binding.imageDate.text = "Photo date: ${(data.stateData).date}"
+
+                    binding.bottomSheetContainer.bottomSheetDescriptionHeader.text =
+                        (data.stateData).title
+                    binding.bottomSheetContainer.bottomSheetDescription.text =
+                        (data.stateData).explanation
+//                    setBottomSheetBehavior(binding.bottomSheetContainer.root, BottomSheetBehavior.STATE_HALF_EXPANDED)
+
                     image_view.load((data.stateData).url) {
                         lifecycle(this@PictureOfTheDayFragment)
                         error(R.drawable.ic_load_error_vector)
@@ -95,10 +122,8 @@ class PictureOfTheDayFragment : Fragment() {
                 }
             }
             is ViewState.Loading -> {
-                //showLoading()
                 if (loadinglayout_in_main.visibility != View.VISIBLE) {
                     loadinglayout_in_main.visibility = View.VISIBLE
-//                    main.visibility = View.GONE
                 }
             }
             is ViewState.Error -> {
@@ -112,7 +137,6 @@ class PictureOfTheDayFragment : Fragment() {
                         viewModel.getData()
                     }.show()
 
-                //showError(data.error.message)
                 toast(data.error.message)
             }
         }
@@ -140,9 +164,23 @@ class PictureOfTheDayFragment : Fragment() {
         }
     }
 
-    private fun setBottomSheetBehavior(bottomSheet: ConstraintLayout) {
+    private fun setBottomSheetBehavior(bottomSheet: ConstraintLayout, state: Int) {
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
-        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        bottomSheetBehavior.state = state
+    }
+
+    private fun hideOrShowBottomSheet() {
+        if (bottomSheetBehavior.state != BottomSheetBehavior.STATE_COLLAPSED) {
+            setBottomSheetBehavior(
+                binding.bottomSheetContainer.root,
+                BottomSheetBehavior.STATE_COLLAPSED
+            )
+        } else {
+            setBottomSheetBehavior(
+                binding.bottomSheetContainer.root,
+                BottomSheetBehavior.STATE_HALF_EXPANDED
+            )
+        }
     }
 
     private fun Fragment.toast(string: String?) {
