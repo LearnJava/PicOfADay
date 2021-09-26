@@ -13,7 +13,7 @@ import ru.konstantin.material.ui.picture.PODServerResponseData
 import ru.konstantin.material.ui.picture.PictureOfTheDayAPI
 
 class PODListViewModel(
-    private val liveDataForViewToObserve: MutableLiveData<ViewState> = MutableLiveData(),
+    val liveDataForViewToObserve: MutableLiveData<ViewState> = MutableLiveData(),
     private val retrofitImpl: PODRetrofitImpl = PODRetrofitImpl()
 ) : ViewModel() {
 

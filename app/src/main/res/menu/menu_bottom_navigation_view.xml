@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/bottom_view_earth"
-        android:title="Earth" />
+        android:id="@+id/bottom_view_day_before"
+        android:title="@string/day_before" />
 
     <item
-        android:id="@+id/bottom_view_mars"
-        android:title="Mars" />
+        android:id="@+id/bottom_view_yesterday"
+        android:title="@string/yesterday" />
 
     <item
-        android:id="@+id/bottom_view_weather"
-        android:title="Moon" />
+        android:id="@+id/bottom_view_today"
+        android:title="@string/today" />
 </menu>
